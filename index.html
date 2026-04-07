@@ -587,7 +587,7 @@
         <span class="brow-val" id="bComm">—</span>
       </div>
       <div class="brow brow-total">
-        <span class="brow-label">Precio de venta MXN</span>
+        <span class="brow-label">Precio de tus productos *</span>
         <span class="brow-val" id="bFinal">—</span>
       </div>
     </div>
@@ -597,8 +597,8 @@
 
   <footer>
     <span class="footer-hearts">♡ ♡ ♡</span>
-    <div style="font-size:18px;font-weight:900;color:#FF3E82;line-height:1.3;margin-bottom:8px;">⚠️ Los precios <u>no incluyen</u><br>importación y aduana<br><span style="font-size:15px;color:#C0507A;">· Varía por envío ·</span></div>
-    <a href="https://instagram.com/pocapay_mx" target="_blank" style="color:var(--pink);font-weight:700;text-decoration:none;"><strong>@pocapay_mx</strong></a> · <a href="https://www.facebook.com/groups/pocapayantiguo" target="_blank" style="color:var(--pink);font-weight:700;text-decoration:none;">facebook</a> · pocapay.com
+    <div style="font-size:18px;font-weight:900;color:#FF3E82;line-height:1.3;margin-bottom:8px;"><br>*Los precios son aproximados y <u>no incluyen </u>costo de aduana<br><span style="font-size:15px;color:#C0507A;">· Varía por envío ·</span></div>
+    <a href="https://instagram.com/pocapay_mx" target="_blank" style="color:var(--pink);font-weight:700;text-decoration:none;"><strong>@pocapay_mx</strong></a> · <a href="https://www.facebook.com/groups/pocapayantiguo" target="_blank" style="color:var(--pink);font-weight:700;text-decoration:none;"><strong>facebook<strong> </a> · pocapay.com
   </footer>
 
   <!-- MODAL -->
@@ -668,15 +668,15 @@
 
     function krwReal(val) { return val * 10000; }
 
-    function getMargin(mxn) {
-      if (mxn <= 200)  return { pct: 0.45,   label: '40–50%', cls: 'tier-low', tier: 'Básico' };
-      if (mxn <= 600)  return { pct: 0.275,  label: '25–30%', cls: 'tier-mid', tier: 'Medio' };
-      if (mxn <= 1500) return { pct: 0.175,  label: '15–20%', cls: 'tier-high', tier: 'Alto' };
-      return                  { pct: 0.10,   label: '10%',    cls: 'tier-col', tier: 'Coleccionista' };
-    }
+	function getMargin(mxn) {
+		if (mxn <= 200)  return { pct: 0.35, label: '35%', cls: 'tier-low', tier: 'Básico' };
+		if (mxn <= 1000)  return { pct: 0.25, label: '25%', cls: 'tier-mid', tier: 'Medio' };
+		if (mxn <= 1500) return { pct: 0.20, label: '20%', cls: 'tier-high', tier: 'Alto' };
+	return           { pct: 0.10, label: '10%', cls: 'tier-col', tier: 'Coleccionista' };
+	}
 
     function fmt(n) {
-      return n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 });
+      return n.toLocaleString('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }) + ' MXN';
     }
 
     function fmtKRW(n) { return '₩' + Math.round(n).toLocaleString('es-MX'); }
@@ -695,9 +695,9 @@
         return;
       }
       var productKRW  = krwReal(raw);
-      var baseKRW     = productKRW + 3000;
-      var commKRW     = baseKRW * 0.05;
-      var subtotalKRW = baseKRW + commKRW + 7000 + 1500;
+	  var productMXN  = productKRW * exchangeRate;
+      var commKRW     = productKRW + 3000 + 7000 + 1500;
+      var subtotalKRW = commKRW * (1 + 0.05) ;
       var subtotalMXN = subtotalKRW * exchangeRate;
       var m           = getMargin(subtotalMXN);
       var finalMXN    = subtotalMXN / (1 - m.pct);
@@ -705,10 +705,10 @@
       document.getElementById('resultCard').classList.add('visible');
       document.getElementById('breakdownCard').classList.add('visible');
       document.getElementById('resultPrice').textContent = fmt(finalMXN);
-      var proxyMXN  = 7000 * exchangeRate;
-      var comisiones = finalMXN - subtotalMXN - proxyMXN;
+      var proxyMXN  = subtotalMXN - productMXN;
+      var comisiones = finalMXN - subtotalMXN;
 
-      document.getElementById('bProd').textContent  = fmtKRW(productKRW);
+      document.getElementById('bProd').textContent  = fmt(productMXN);
       document.getElementById('bProxy').textContent = fmt(proxyMXN);
       document.getElementById('bComm').textContent  = fmt(comisiones);
       document.getElementById('bFinal').textContent = fmt(finalMXN);
