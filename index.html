@@ -620,28 +620,43 @@
     var exchangeRate = 0.011;
     var exchangeRateLoaded = false;
 
+    function setRate(rate) {
+      var indicator = document.getElementById('exchangeIndicator');
+      exchangeRate = rate;
+      exchangeRateLoaded = true;
+      indicator.textContent = '✓ 1 ₩ = $' + rate.toFixed(6) + ' MXN (actualizado)';
+      indicator.style.color = '#2E7D32';
+    }
+
+    function showFallback() {
+      var indicator = document.getElementById('exchangeIndicator');
+      indicator.textContent = '⚠️ Usando tipo de cambio estimado';
+      indicator.style.color = '#F57F17';
+    }
+
+    function tryCloudflare() {
+      fetch('https://latest.currency-api.pages.dev/v1/currencies/krw.json')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var rate = data && data.krw && data.krw.mxn;
+          if (rate) { setRate(rate); } else { showFallback(); }
+        })
+        .catch(showFallback);
+    }
+
     function fetchExchangeRate() {
       var indicator = document.getElementById('exchangeIndicator');
       indicator.textContent = '⏳ Actualizando tipo de cambio...';
       indicator.style.color = '#C0507A';
-      fetch('https://api.frankfurter.dev/v2/rates?base=KRW&quotes=MXN')
+
+      // Intento 1: jsdelivr (fawazahmed0)
+      fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/krw.json')
         .then(function(r) { return r.json(); })
         .then(function(data) {
-          var rate = data.rates ? data.rates.MXN : null;
-          if (rate) {
-            exchangeRate = rate;
-            exchangeRateLoaded = true;
-            indicator.textContent = '✓ Tipo de cambio actualizado: 1 ₩ = $' + rate.toFixed(6) + ' MXN';
-            indicator.style.color = '#2E7D32';
-          } else {
-            indicator.textContent = '⚠️ Usando tipo de cambio estimado';
-            indicator.style.color = '#F57F17';
-          }
+          var rate = data && data.krw && data.krw.mxn;
+          if (rate) { setRate(rate); } else { tryCloudflare(); }
         })
-        .catch(function() {
-          indicator.textContent = '⚠️ Sin conexión, usando tipo de cambio estimado';
-          indicator.style.color = '#F57F17';
-        });
+        .catch(tryCloudflare);
     }
 
     fetchExchangeRate();
