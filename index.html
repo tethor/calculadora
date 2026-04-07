@@ -712,8 +712,8 @@
 
 	function getMargin(mxn) {
 		if (mxn <= 200)  return { pct: 0.35, label: '35%', cls: 'tier-low', tier: 'Básico' };
-		if (mxn <= 1000)  return { pct: 0.25, label: '25%', cls: 'tier-mid', tier: 'Medio' };
-		if (mxn <= 1500) return { pct: 0.20, label: '20%', cls: 'tier-high', tier: 'Alto' };
+		if (mxn <= 800)  return { pct: 0.20, label: '20%', cls: 'tier-mid', tier: 'Medio' };
+		if (mxn <= 1000) return { pct: 0.15, label: '15%', cls: 'tier-high', tier: 'Alto' };
 	return           { pct: 0.10, label: '10%', cls: 'tier-col', tier: 'Coleccionista' };
 	}
 
