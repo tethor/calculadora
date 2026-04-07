@@ -738,7 +738,7 @@
       }
       var productKRW  = krwReal(raw);
 	  var productMXN  = productKRW * exchangeRate;
-      var commKRW     = productKRW + 7000 + 1500;
+      var commKRW     = productKRW + 3000 + 7000 + 1500;
       var subtotalKRW = commKRW * (1 + 0.05) ;
       var subtotalMXN = subtotalKRW * exchangeRate;
       var m           = getMargin(subtotalMXN);
