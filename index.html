@@ -713,8 +713,12 @@
         <span class="brow-label"><span style="color:#FF3E82;font-weight:900;">POCA</span><span style="color:#FFB800;font-weight:900;">Gestión</span><span> de compra</span></span>
         <span class="brow-val" id="bComm">—</span>
       </div>
+      <div class="brow" id="bExtraRow" style="display:none;">
+        <span class="brow-label" id="bExtraLabel">—</span>
+        <span class="brow-val" id="bExtraVal">—</span>
+      </div>
       <div class="brow brow-total">
-        <span class="brow-label">Precio base *</span>
+        <span class="brow-label">Precio final *</span>
         <span class="brow-val" id="bFinal">—</span>
       </div>
     </div>
@@ -944,12 +948,32 @@
       var proxyMXN  = selectedSubtotalMXN - productMXN;
       var comisiones = selectedBase - selectedSubtotalMXN;
 
+      // Extra row: IVA for transfer, Commission for card
+      var bExtraRow = $('bExtraRow');
+      var bExtraLabel = $('bExtraLabel');
+      var bExtraVal = $('bExtraVal');
+
+      if (selectedPayment === 'cash') {
+        // Transfer: IVA = cashPrice - cashBaseMXN = cashBaseMXN * 0.16
+        var ivaMXN = cashBaseMXN * CONFIG.CASH_IVA_PCT;
+        bExtraLabel.textContent = 'IVA (16%)';
+        bExtraVal.textContent = fmt(ivaMXN);
+        bExtraRow.style.display = 'flex';
+        $('bFinal').textContent = fmt(cashPrice);
+      } else {
+        // Card: Commission = cardPrice - cardBaseMXN
+        var commissionMXN = cardPrice - cardBaseMXN;
+        bExtraLabel.textContent = 'Comisión tarjeta';
+        bExtraVal.textContent = fmt(commissionMXN);
+        bExtraRow.style.display = 'flex';
+        $('bFinal').textContent = fmt(cardPrice);
+      }
+
       $('priceCash').textContent = fmt(cashPrice);
       $('priceCard').textContent = fmt(cardPrice);
       $('bProd').textContent  = fmt(productMXN);
       $('bProxy').textContent = fmt(proxyMXN);
       $('bComm').textContent  = fmt(comisiones);
-      $('bFinal').textContent = fmt(selectedBase);
 
       // WhatsApp
       whatsappBtn.classList.add('visible');
