@@ -322,12 +322,6 @@
       box-shadow: 0 0 0 3px rgba(255, 62, 130, 0.3);
     }
 
-    .payment-option .fee-hint {
-      font-size: 11px;
-      font-weight: 400;
-      opacity: 0.8;
-    }
-
     /* ── CALC BUTTON ── */
     .btn-calc {
       width: 100%;
@@ -426,12 +420,6 @@
       line-height: 1;
     }
 
-    .method-note {
-      font-size: 11px;
-      opacity: 0.8;
-      margin-top: 4px;
-    }
-
     /* ── BREAKDOWN ── */
     .breakdown-card {
       background: var(--card-bg);
@@ -467,21 +455,6 @@
     .brow-label { color: var(--text-muted); flex: 1; }
     .brow-val { font-weight: 700; color: var(--text); white-space: nowrap; }
     .brow-val.positive { color: var(--pink); }
-
-    .tier-badge {
-      display: inline-block;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 20px;
-      margin-left: 4px;
-      vertical-align: middle;
-    }
-
-    .tier-low { background: #E8F9E8; color: #2E7D32; }
-    .tier-mid { background: #FFF8E1; color: #F57F17; }
-    .tier-high { background: #FCE4EC; color: #C62828; }
-    .tier-col { background: #EDE7F6; color: #4527A0; }
 
     .brow-total {
       border-top: 2px solid var(--pink);
@@ -694,13 +667,11 @@
 
     <!-- Payment Method Selector -->
     <div class="payment-selector" role="radiogroup" aria-label="Método de pago">
-      <button class="payment-option selected" id="payCash" role="radio" aria-checked="true" tabindex="0" onclick="selectPayment('cash')" aria-label="Transferencia bancaria: precio + 16% IVA">
+      <button class="payment-option selected" id="payCash" role="radio" aria-checked="true" tabindex="0" onclick="selectPayment('cash')" aria-label="Transferencia bancaria">
         🏦 Transferencia
-        <span class="fee-hint">+16% IVA</span>
       </button>
-      <button class="payment-option" id="payCard" role="radio" aria-checked="false" tabindex="0" onclick="selectPayment('card')" aria-label="Tarjeta: precio + 3.49% + IVA + $4.64">
+      <button class="payment-option" id="payCard" role="radio" aria-checked="false" tabindex="0" onclick="selectPayment('card')" aria-label="Tarjeta">
         💳 Tarjeta
-        <span class="fee-hint">+3.49% + IVA + $4.64</span>
       </button>
     </div>
 
@@ -717,12 +688,10 @@
         <div class="result-method cash" id="resultCash">
           <div class="method-label">🏦 Transferencia</div>
           <div class="method-price" id="priceCash">—</div>
-          <div class="method-note">Incluye 16% IVA</div>
         </div>
         <div class="result-method card" id="resultCardPay">
           <div class="method-label">💳 Tarjeta</div>
           <div class="method-price" id="priceCard">—</div>
-          <div class="method-note">Incluye 3.49% + IVA + $4.64</div>
         </div>
       </div>
     </div>
@@ -743,7 +712,7 @@
         <span class="brow-val" id="bProxy">—</span>
       </div>
       <div class="brow">
-        <span class="brow-label"><span style="color:#FF3E82;font-weight:900;">POCA</span><span style="color:#FFB800;font-weight:900;">Gestión</span><span> de compra</span> <span class="tier-badge tier-low" id="tierBadge">35% Básico</span></span>
+        <span class="brow-label"><span style="color:#FF3E82;font-weight:900;">POCA</span><span style="color:#FFB800;font-weight:900;">Gestión</span><span> de compra</span></span>
         <span class="brow-val" id="bComm">—</span>
       </div>
       <div class="brow brow-total">
@@ -985,13 +954,6 @@
       $('bProxy').textContent = fmt(proxyMXN);
       $('bComm').textContent  = fmt(comisiones);
       $('bFinal').textContent = fmt(selectedBase);
-
-      // Update tier badge in breakdown
-      var tierEl = document.querySelector('.tier-badge');
-      if (tierEl) {
-        tierEl.textContent = selectedMargin.label + ' ' + selectedMargin.tier;
-        tierEl.className = 'tier-badge ' + selectedMargin.cls;
-      }
 
       // WhatsApp
       whatsappBtn.classList.add('visible');
