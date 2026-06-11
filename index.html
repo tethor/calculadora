@@ -681,8 +681,6 @@
 
     <div class="result-card" id="resultCard" role="region" aria-label="Resultado del cálculo" aria-hidden="true">
       <div class="result-title"><span style="color:#FFE8F2;font-weight:900;">POCA</span><span style="color:#FFB800;font-weight:900;">PRECIO</span></div>
-      <div class="result-price" id="resultPrice">—</div>
-      <div class="result-sub">Precio base (sin método de pago)</div>
 
       <div class="dual-results" id="dualResults" style="display:none;">
         <div class="result-method cash" id="resultCash">
@@ -942,14 +940,12 @@
       var selectedMargin = selectedPayment === 'cash' ? cashMargin : cardMargin;
       var selectedSubtotalMXN = selectedPayment === 'cash' ? cashSubtotalMXN : cardSubtotalMXN;
 
-      $('resultPrice').textContent = fmt(selectedBase);
-      $('priceCash').textContent = fmt(cashPrice);
-      $('priceCard').textContent = fmt(cardPrice);
-
       // Breakdown for selected method
       var proxyMXN  = selectedSubtotalMXN - productMXN;
       var comisiones = selectedBase - selectedSubtotalMXN;
 
+      $('priceCash').textContent = fmt(cashPrice);
+      $('priceCard').textContent = fmt(cardPrice);
       $('bProd').textContent  = fmt(productMXN);
       $('bProxy').textContent = fmt(proxyMXN);
       $('bComm').textContent  = fmt(comisiones);
