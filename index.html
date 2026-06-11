@@ -930,7 +930,7 @@
       var cardSubtotalMXN = cardSubtotalKRW * exchangeRate;
       var cardMargin = getMargin(cardSubtotalMXN);
       var cardBaseMXN = cardSubtotalMXN / (1 - cardMargin.pct);
-      var cardPrice = cardBaseMXN * (1 + CONFIG.CARD_FEE_PCT) * (1 + CONFIG.CARD_IVA_PCT) + CONFIG.CARD_FIXED_FEE;
+      var cardPrice = (cardBaseMXN * (1 + CONFIG.CARD_FEE_PCT) + CONFIG.CARD_FIXED_FEE) * (1 + CONFIG.CARD_IVA_PCT);
 
       // Show results
       resultCard.classList.add('visible');
