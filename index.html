@@ -281,47 +281,6 @@
       cursor: pointer;
     }
 
-    /* ── PAYMENT METHOD SELECTOR ── */
-    .payment-selector {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 14px;
-    }
-
-    .payment-option {
-      flex: 1;
-      height: 52px;
-      border: 2px solid var(--border);
-      border-radius: 14px;
-      background: var(--card-bg);
-      color: var(--text);
-      font-size: 15px;
-      font-weight: 700;
-      font-family: 'Nunito', sans-serif;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: all 0.2s;
-    }
-
-    .payment-option:hover {
-      border-color: var(--pink);
-      background: var(--pink-bg);
-    }
-
-    .payment-option.selected {
-      border-color: var(--pink);
-      background: var(--pink);
-      color: #fff;
-    }
-
-    .payment-option:focus {
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(255, 62, 130, 0.3);
-    }
-
     /* ── CALC BUTTON ── */
     .btn-calc {
       width: 100%;
@@ -386,39 +345,6 @@
     }
 
     .result-sub { font-size: 13px; opacity: 0.85; }
-
-    /* ── DUAL RESULT ROWS ── */
-    .dual-results {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-top: 16px;
-    }
-
-    .result-method {
-      background: rgba(255,255,255,0.15);
-      border-radius: 14px;
-      padding: 16px;
-      text-align: center;
-    }
-
-    .result-method.cash { background: rgba(37, 211, 102, 0.2); border: 1px solid #25D366; }
-    .result-method.card { background: rgba(136, 85, 187, 0.2); border: 1px solid var(--purple); }
-
-    .method-label {
-      font-size: 11px;
-      font-weight: 900;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      opacity: 0.9;
-      margin-bottom: 4px;
-    }
-
-    .method-price {
-      font-size: 28px;
-      font-weight: 900;
-      line-height: 1;
-    }
 
     /* ── BREAKDOWN ── */
     .breakdown-card {
@@ -620,8 +546,6 @@
       .hero-title { font-size: 24px; }
       .result-price { font-size: 36px; }
       .poca-input { font-size: 22px; }
-      .method-price { font-size: 22px; }
-      .dual-results { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -665,34 +589,15 @@
       <button class="exchange-lock" onclick="lockExchange()" aria-label="Cerrar editor">🔒 Cerrar</button>
     </div>
 
-    <!-- Payment Method Selector -->
-    <div class="payment-selector" role="radiogroup" aria-label="Método de pago">
-      <button class="payment-option selected" id="payCash" role="radio" aria-checked="true" tabindex="0" onclick="selectPayment('cash')" aria-label="Transferencia bancaria">
-        🏦 Transferencia
-      </button>
-      <button class="payment-option" id="payCard" role="radio" aria-checked="false" tabindex="0" onclick="selectPayment('card')" aria-label="Tarjeta">
-        💳 Tarjeta
-      </button>
-    </div>
-
     <button class="btn-calc" id="btnCalc" onclick="calcular()" disabled aria-label="Calcular precio de venta">
       🛒 Calcular precio de venta
     </button>
 
     <div class="result-card" id="resultCard" role="region" aria-label="Resultado del cálculo" aria-hidden="true">
-      <div class="result-title"><span style="color:#FFE8F2;font-weight:900;">POCA</span><span style="color:#FFB800;font-weight:900;">PRECIO</span></div>
-
-      <div class="dual-results" id="dualResults" style="display:none;">
-        <div class="result-method cash" id="resultCash">
-          <div class="method-label">🏦 Transferencia</div>
-          <div class="method-price" id="priceCash">—</div>
+          <div class="result-title"><span style="color:#FFE8F2;font-weight:900;">POCA</span><span style="color:#FFB800;font-weight:900;">PRECIO</span></div>
+          <div class="result-price" id="priceFinal">—</div>
+          <div class="result-sub">Precio por transferencia 🏦 (IVA incluido)</div>
         </div>
-        <div class="result-method card" id="resultCardPay">
-          <div class="method-label">💳 Tarjeta</div>
-          <div class="method-price" id="priceCard">—</div>
-        </div>
-      </div>
-    </div>
 
     <a id="whatsappBtn" class="whatsapp-btn" href="#" target="_blank" rel="noopener noreferrer" aria-label="Pedir por WhatsApp">
       <span class="whatsapp-icon" aria-hidden="true">💬</span>
@@ -706,14 +611,14 @@
         <span class="brow-val" id="bProd">—</span>
       </div>
       <div class="brow">
-        <span class="brow-label">Servicio proxy</span>
-        <span class="brow-val" id="bProxy">—</span>
-      </div>
-      <div class="brow">
-        <span class="brow-label"><span style="color:#FF3E82;font-weight:900;">POCA</span><span style="color:#FFB800;font-weight:900;">Gestión</span><span> de compra</span></span>
-        <span class="brow-val" id="bComm">—</span>
-      </div>
-      <div class="brow" id="bExtraRow" style="display:none;">
+              <span class="brow-label">Servicio proxy (₩3,000 + ₩1,500)</span>
+              <span class="brow-val" id="bProxy">—</span>
+            </div>
+            <div class="brow">
+                          <span class="brow-label">Gestión de compra (10%)</span>
+                          <span class="brow-val" id="bGest">—</span>
+                        </div>
+                  <div class="brow" id="bExtraRow" style="display:none;">
         <span class="brow-label" id="bExtraLabel">—</span>
         <span class="brow-val" id="bExtraVal">—</span>
       </div>
@@ -750,23 +655,30 @@
   <script>
     // ─── CONFIG ───
     const CONFIG = {
-      // Simple hash of 'nes123' using the djb2-like function below (keeps password out of plain sight)
-      // Simple hash of 'nes123' = -3e8a726a
-      ADMIN_PASSWORD_HASH: '-3e8a726a',
-      WHATSAPP_NUMBER: '523312095258', // México: 52 + 3312095258
-      EXCHANGE_CACHE_HOURS: 24,
-      FALLBACK_RATE: 0.011,
-      // Payment fees (internal calculations)
-      CASH_IVA_PCT: 0.16,
-      CARD_FEE_PCT: 0.0349,
-      CARD_IVA_PCT: 0.16,
-      CARD_FIXED_FEE: 4.64
-    };
+          // Simple hash of 'nes123' using the djb2-like function below (keeps password out of plain sight)
+          // Simple hash of 'nes123' = -3e8a726a
+          ADMIN_PASSWORD_HASH: '-3e8a726a',
+          WHATSAPP_NUMBER: '523312095258', // México: 52 + 3312095258
+          EXCHANGE_CACHE_HOURS: 6,          // el tipo de cambio se renueva cada 6 h (era 24 h)
+          // ⚠️ ANTI-PÉRDIDA: tu banco/casa de cambio te cobra más caro que la tasa del
+          // mercado. Este % extra se suma a la tasa que descarga la calculadora para que
+          // nunca cotices por debajo de tu costo real. Ajusta a tu spread real.
+          FX_BUFFER_PCT: 0.04,              // +4% sobre la tasa de mercado
+          FALLBACK_RATE: 0.013,             // respaldo si las APIs fallan (el mercado hoy ≈0.0121)
+          // Tarifas internas (transferencia)
+                IVA_PCT: 0.16,
+                GESTION_PCT: 0.10,                // "gestión de compra"
+                PROXY_FEE_KRW: 3000,
+                HANDLING_FEE_KRW: 1500,
+                // Curva de margen suave (sin escalones): margen = PISO + AGRA·e^(-subtotal/DECAY)
+                MARGIN_FLOOR: 0.10,               // margen mínimo en pedidos grandes
+                MARGIN_AGRA: 0.20,                // qué tan agresivo (0.16 suave · 0.22 agresivo)
+                MARGIN_DECAY: 1800                // en $MXN: a mayor valor, más lento baja el margen
+              };
 
     // ─── STATE ───
-    var exchangeRate = CONFIG.FALLBACK_RATE;
-    var exchangeRateLoaded = false;
-    var selectedPayment = 'cash'; // 'cash' or 'card'
+        var exchangeRate = CONFIG.FALLBACK_RATE;
+        var exchangeRateLoaded = false;
 
     // ─── DOM ELEMENTS ───
     var $ = function(id) { return document.getElementById(id); };
@@ -777,13 +689,10 @@
     var exchangeEditInput = $('exchangeEditInput');
     var resultCard = $('resultCard');
     var breakdownCard = $('breakdownCard');
-    var dualResults = $('dualResults');
-    var modalOverlay = $('modalOverlay');
-    var pwdInput = $('pwdInput');
-    var modalError = $('modalError');
-    var payCash = $('payCash');
-    var payCard = $('payCard');
-    var whatsappBtn = $('whatsappBtn');
+        var modalOverlay = $('modalOverlay');
+        var pwdInput = $('pwdInput');
+        var modalError = $('modalError');
+        var whatsappBtn = $('whatsappBtn');
 
     // ─── UTILS ───
     function sha256(str) {
@@ -806,16 +715,16 @@
     function krwReal(val) { return val * 10000; }
 
     function getMargin(mxn) {
-      if (mxn <= 200)  return { pct: 0.35, label: '35%', cls: 'tier-low', tier: 'Básico' };
-      if (mxn <= 800)  return { pct: 0.20, label: '20%', cls: 'tier-mid', tier: 'Medio' };
-      if (mxn <= 1000) return { pct: 0.15, label: '15%', cls: 'tier-high', tier: 'Alto' };
-      return { pct: 0.10, label: '10%', cls: 'tier-col', tier: 'Coleccionista' };
-    }
+          // Curva suave de margen: sube en productos baratos y baja sin bruscos
+          // saltos en los caros (así el precio nunca cae al crecer el producto).
+          var pct = CONFIG.MARGIN_FLOOR + CONFIG.MARGIN_AGRA * Math.exp(-mxn / CONFIG.MARGIN_DECAY);
+          return { pct: pct, label: Math.round(pct * 100) + '%' };
+        }
 
     function setRate(rate, fromCache) {
       exchangeRate = rate;
       exchangeRateLoaded = true;
-      var txt = '✓ 1 ₩ = $' + rate.toFixed(6) + ' MXN' + (fromCache ? ' (cache 24h)' : ' (actualizado)');
+      var txt = '✓ 1 ₩ = $' + rate.toFixed(6) + ' MXN' + (fromCache ? ' (cache 6h)' : ' (actualizado)');
       exchangeIndicator.textContent = txt;
       exchangeIndicator.style.color = '#2E7D32';
       validateInput();
@@ -849,14 +758,17 @@
     }
 
     function tryCloudflare() {
-      fetch('https://latest.currency-api.pages.dev/v1/currencies/krw.json')
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-          var rate = data && data.krw && data.krw.mxn;
-          if (rate) { setRate(rate); saveRateToCache(rate); } else { showFallback(); }
-        })
-        .catch(showFallback);
-    }
+          fetch('https://latest.currency-api.pages.dev/v1/currencies/krw.json')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+              var rate = data && data.krw && data.krw.mxn;
+              if (rate) {
+                rate = rate * (1 + CONFIG.FX_BUFFER_PCT); // buffer anti-pérdida
+                setRate(rate); saveRateToCache(rate);
+              } else { showFallback(); }
+            })
+            .catch(showFallback);
+        }
 
     function fetchExchangeRate() {
       if (loadCachedRate()) return; // already loaded from cache
@@ -865,12 +777,15 @@
       exchangeIndicator.style.color = '#C0507A';
 
       fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/krw.json')
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-          var rate = data && data.krw && data.krw.mxn;
-          if (rate) { setRate(rate); saveRateToCache(rate); } else { tryCloudflare(); }
-        })
-        .catch(tryCloudflare);
+              .then(function(r) { return r.json(); })
+              .then(function(data) {
+                var rate = data && data.krw && data.krw.mxn;
+                if (rate) {
+                  rate = rate * (1 + CONFIG.FX_BUFFER_PCT); // buffer anti-pérdida
+                  setRate(rate); saveRateToCache(rate);
+                } else { tryCloudflare(); }
+              })
+              .catch(tryCloudflare);
     }
 
     // ─── INPUT VALIDATION ───
@@ -890,19 +805,6 @@
       validateInput();
     }
 
-    // ─── PAYMENT SELECTOR ───
-    function selectPayment(method) {
-      selectedPayment = method;
-      payCash.classList.toggle('selected', method === 'cash');
-      payCard.classList.toggle('selected', method === 'card');
-      payCash.setAttribute('aria-checked', method === 'cash');
-      payCard.setAttribute('aria-checked', method === 'card');
-      payCash.setAttribute('tabindex', method === 'cash' ? '0' : '-1');
-      payCard.setAttribute('tabindex', method === 'card' ? '0' : '-1');
-      // Recalculate if result already shown
-      if (resultCard.classList.contains('visible')) calcular();
-    }
-
     // ─── CALCULATIONS ───
     function calcular() {
       var raw = parseFloat(pocaInput.value);
@@ -913,77 +815,48 @@
       }
 
       var productKRW  = krwReal(raw);
-      var productMXN  = productKRW * exchangeRate;
+            var productMXN  = productKRW * exchangeRate;
 
-      // Proxy fees (same for both)
-      var commKRW = productKRW + 3000 + 1500;        // +₩3,000 proxy + ₩1,500 fee
+            // Tarifas proxy (mismas para todos los pedidos)
+            var commKRW = productKRW + CONFIG.PROXY_FEE_KRW + CONFIG.HANDLING_FEE_KRW; // +₩3,000 proxy + ₩1,500 fee
 
-      // ─── CASH PATH: con 10% gestión + IVA 16% ───
-      var cashSubtotalKRW = commKRW * 1.10;
-      var cashSubtotalMXN = cashSubtotalKRW * exchangeRate;
-      var cashMargin = getMargin(cashSubtotalMXN);
-      var cashBaseMXN = cashSubtotalMXN / (1 - cashMargin.pct);
-      var cashPrice = cashBaseMXN * (1 + CONFIG.CASH_IVA_PCT);
+            // ─── RUTA ÚNICA: Transferencia (10% gestión + margen + IVA) ───
+            var proxyMXN   = (CONFIG.PROXY_FEE_KRW + CONFIG.HANDLING_FEE_KRW) * exchangeRate;
+            var gestionMXN = commKRW * CONFIG.GESTION_PCT * exchangeRate;
+            var subtotalMXN = productMXN + proxyMXN + gestionMXN;   // = commKRW × 1.10 × tasa
+            var margin = getMargin(subtotalMXN);
+            var baseMXN = subtotalMXN / (1 - margin.pct);
+            var ivaMXN  = baseMXN * CONFIG.IVA_PCT;
+            var finalMXN = baseMXN * (1 + CONFIG.IVA_PCT);
 
-      // ─── CARD PATH: SIN 10% gestión, comisiones tarjeta reales ───
-      var cardSubtotalKRW = commKRW;  // sin 10% gestión
-      var cardSubtotalMXN = cardSubtotalKRW * exchangeRate;
-      var cardMargin = getMargin(cardSubtotalMXN);
-      var cardBaseMXN = cardSubtotalMXN / (1 - cardMargin.pct);
-      var cardPrice = (cardBaseMXN * (1 + CONFIG.CARD_FEE_PCT) + CONFIG.CARD_FIXED_FEE) * (1 + CONFIG.CARD_IVA_PCT);
+            // Mostrar resultados (pesos enteros; la suma de filas siempre cuadra)
+            resultCard.classList.add('visible');
+            resultCard.setAttribute('aria-hidden', 'false');
+            breakdownCard.classList.add('visible');
+            breakdownCard.setAttribute('aria-hidden', 'false');
 
-      // Show results
-      resultCard.classList.add('visible');
-      resultCard.setAttribute('aria-hidden', 'false');
-      breakdownCard.classList.add('visible');
-      breakdownCard.setAttribute('aria-hidden', 'false');
-      dualResults.style.display = 'grid';
+            var finalR = Math.round(finalMXN);
+            var productR = Math.round(productMXN);
+            var proxyR = Math.round(proxyMXN);
+            var gestionR = Math.round(gestionMXN);
+            var ivaR = Math.round(ivaMXN);
 
-      // Precio base shown = selected method's base
-      var selectedBase = selectedPayment === 'cash' ? cashBaseMXN : cardBaseMXN;
-      var selectedMargin = selectedPayment === 'cash' ? cashMargin : cardMargin;
-      var selectedSubtotalMXN = selectedPayment === 'cash' ? cashSubtotalMXN : cardSubtotalMXN;
+                        $('bProd').textContent  = fmt(productR);
+                        $('bProxy').textContent = fmt(proxyR);
+                        $('bGest').textContent  = fmt(gestionR);
+                        $('bExtraLabel').textContent = 'IVA (16%)';
+            $('bExtraVal').textContent   = fmt(ivaR);
+            $('bExtraRow').style.display = 'flex';
+            $('bFinal').textContent = fmt(finalR);
+            $('priceFinal').textContent = fmt(finalR);
 
-      // Breakdown for selected method
-      var proxyMXN  = selectedSubtotalMXN - productMXN;
-      var comisiones = selectedBase - selectedSubtotalMXN;
+            // WhatsApp
+            whatsappBtn.classList.add('visible');
+            var mensaje = `Hola POCAPAY GO, vi la calculadora de photocards. Método: Transferencia. Precio final: ${fmt(finalR)}. Quiero pedir:`;
+            whatsappBtn.href = 'https://wa.me/' + CONFIG.WHATSAPP_NUMBER + '?text=' + encodeURIComponent(mensaje);
 
-      // Extra row: IVA for transfer, Commission for card
-      var bExtraRow = $('bExtraRow');
-      var bExtraLabel = $('bExtraLabel');
-      var bExtraVal = $('bExtraVal');
-
-      if (selectedPayment === 'cash') {
-        // Transfer: IVA = cashPrice - cashBaseMXN = cashBaseMXN * 0.16
-        var ivaMXN = cashBaseMXN * CONFIG.CASH_IVA_PCT;
-        bExtraLabel.textContent = 'IVA (16%)';
-        bExtraVal.textContent = fmt(ivaMXN);
-        bExtraRow.style.display = 'flex';
-        $('bFinal').textContent = fmt(cashPrice);
-      } else {
-        // Card: Commission = cardPrice - cardBaseMXN
-        var commissionMXN = cardPrice - cardBaseMXN;
-        bExtraLabel.textContent = 'Comisión tarjeta';
-        bExtraVal.textContent = fmt(commissionMXN);
-        bExtraRow.style.display = 'flex';
-        $('bFinal').textContent = fmt(cardPrice);
-      }
-
-      $('priceCash').textContent = fmt(cashPrice);
-      $('priceCard').textContent = fmt(cardPrice);
-      $('bProd').textContent  = fmt(productMXN);
-      $('bProxy').textContent = fmt(proxyMXN);
-      $('bComm').textContent  = fmt(comisiones);
-
-      // WhatsApp
-      whatsappBtn.classList.add('visible');
-      var metodoTexto = selectedPayment === 'cash' ? 'Transferencia' : 'Tarjeta';
-      var precioFinal = selectedPayment === 'cash' ? fmt(cashPrice) : fmt(cardPrice);
-      var mensaje = `Hola POCAPAY GO, vi la calculadora de photocards. Método: ${metodoTexto}. Precio final: ${precioFinal}. Quiero pedir:`;
-      whatsappBtn.href = 'https://wa.me/' + CONFIG.WHATSAPP_NUMBER + '?text=' + encodeURIComponent(mensaje);
-
-      resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
+            resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
 
     // ─── MODAL / ADMIN ───
     function openModal() {
@@ -1040,20 +913,10 @@
     });
 
     modalOverlay.addEventListener('click', function(e) {
-      if (e.target === this) closeModal();
-    });
+          if (e.target === this) closeModal();
+        });
 
-    // Keyboard navigation for payment selector
-    [payCash, payCard].forEach(function(btn) {
-      btn.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          selectPayment(btn.id === 'payCash' ? 'cash' : 'card');
-        }
-      });
-    });
-
-    // ─── INIT ───
+        // ─── INIT ───
     fetchExchangeRate();
   </script>
 </body>
