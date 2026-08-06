@@ -596,7 +596,7 @@
     <div class="result-card" id="resultCard" role="region" aria-label="Resultado del cálculo" aria-hidden="true">
           <div class="result-title"><span style="color:#FFE8F2;font-weight:900;">POCA</span><span style="color:#FFB800;font-weight:900;">PRECIO</span></div>
           <div class="result-price" id="priceFinal">—</div>
-          <div class="result-sub">Precio por transferencia 🏦 (IVA incluido)</div>
+          <div class="result-sub">Precio por transferencia 🏦</div>
         </div>
 
     <a id="whatsappBtn" class="whatsapp-btn" href="#" target="_blank" rel="noopener noreferrer" aria-label="Pedir por WhatsApp">
@@ -607,17 +607,17 @@
     <div class="breakdown-card" id="breakdownCard" role="region" aria-label="Desglose del cálculo" aria-hidden="true">
       <div class="breakdown-title">📦 Desglose del cálculo</div>
       <div class="brow">
-        <span class="brow-label">Costo del producto</span>
-        <span class="brow-val" id="bProd">—</span>
-      </div>
-      <div class="brow">
-              <span class="brow-label">Servicio proxy (₩3,000 + ₩1,500)</span>
+              <span class="brow-label">Costo del producto</span>
+              <span class="brow-val" id="bProd">—</span>
+            </div>
+            <div class="brow">
+              <span class="brow-label">Servicio proxy</span>
               <span class="brow-val" id="bProxy">—</span>
             </div>
             <div class="brow">
-                          <span class="brow-label">Gestión de compra (10%)</span>
-                          <span class="brow-val" id="bGest">—</span>
-                        </div>
+              <span class="brow-label"><span style="color:#FF3E82;font-weight:900;">POCA</span><span style="color:#FFB800;font-weight:900;">Gestión</span><span> de compra</span></span>
+              <span class="brow-val" id="bComm">—</span>
+            </div>
                   <div class="brow" id="bExtraRow" style="display:none;">
         <span class="brow-label" id="bExtraLabel">—</span>
         <span class="brow-val" id="bExtraVal">—</span>
@@ -842,9 +842,9 @@
             var ivaR = Math.round(ivaMXN);
 
                         $('bProd').textContent  = fmt(productR);
-                        $('bProxy').textContent = fmt(proxyR);
-                        $('bGest').textContent  = fmt(gestionR);
-                        $('bExtraLabel').textContent = 'IVA (16%)';
+                                                $('bProxy').textContent = fmt(proxyR);
+                                                $('bComm').textContent  = fmt(gestionR);
+                                                $('bExtraLabel').textContent = 'IVA'
             $('bExtraVal').textContent   = fmt(ivaR);
             $('bExtraRow').style.display = 'flex';
             $('bFinal').textContent = fmt(finalR);
