@@ -806,8 +806,10 @@
     function krwReal(val) { return val * 10000; }
 
     function getMargin(mxn) {
-      var pct = 0.10 + 0.20 * Math.exp(-mxn / 1800);
-      return { pct: pct, label: Math.round(pct * 100) + '%', cls: 'tier-mid', tier: 'Dinámico' };
+      if (mxn <= 200)  return { pct: 0.35, label: '35%', cls: 'tier-low', tier: 'Básico' };
+      if (mxn <= 800)  return { pct: 0.20, label: '20%', cls: 'tier-mid', tier: 'Medio' };
+      if (mxn <= 1000) return { pct: 0.15, label: '15%', cls: 'tier-high', tier: 'Alto' };
+      return { pct: 0.10, label: '10%', cls: 'tier-col', tier: 'Coleccionista' };
     }
 
     function setRate(rate, fromCache) {
