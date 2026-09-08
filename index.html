@@ -754,7 +754,7 @@
       // Simple hash of 'nes123' = -3e8a726a
       ADMIN_PASSWORD_HASH: '-3e8a726a',
       WHATSAPP_NUMBER: '523312095258', // México: 52 + 3312095258
-      EXCHANGE_CACHE_HOURS: 24,
+      EXCHANGE_CACHE_HOURS: 6,
       FALLBACK_RATE: 0.011,
       // Payment fees (internal calculations)
       CASH_IVA_PCT: 0.16,
@@ -806,16 +806,14 @@
     function krwReal(val) { return val * 10000; }
 
     function getMargin(mxn) {
-      if (mxn <= 200)  return { pct: 0.35, label: '35%', cls: 'tier-low', tier: 'Básico' };
-      if (mxn <= 800)  return { pct: 0.20, label: '20%', cls: 'tier-mid', tier: 'Medio' };
-      if (mxn <= 1000) return { pct: 0.15, label: '15%', cls: 'tier-high', tier: 'Alto' };
-      return { pct: 0.10, label: '10%', cls: 'tier-col', tier: 'Coleccionista' };
+      var pct = 0.10 + 0.20 * Math.exp(-mxn / 1800);
+      return { pct: pct, label: Math.round(pct * 100) + '%', cls: 'tier-mid', tier: 'Dinámico' };
     }
 
     function setRate(rate, fromCache) {
       exchangeRate = rate;
       exchangeRateLoaded = true;
-      var txt = '✓ 1 ₩ = $' + rate.toFixed(6) + ' MXN' + (fromCache ? ' (cache 24h)' : ' (actualizado)');
+      var txt = '✓ 1 ₩ = $' + rate.toFixed(6) + ' MXN' + (fromCache ? ' (cache 6h)' : ' (actualizado)');
       exchangeIndicator.textContent = txt;
       exchangeIndicator.style.color = '#2E7D32';
       validateInput();
@@ -853,7 +851,7 @@
         .then(function(r) { return r.json(); })
         .then(function(data) {
           var rate = data && data.krw && data.krw.mxn;
-          if (rate) { setRate(rate); saveRateToCache(rate); } else { showFallback(); }
+          if (rate) { setRate(rate * 1.04); saveRateToCache(rate * 1.04); } else { showFallback(); }
         })
         .catch(showFallback);
     }
@@ -868,7 +866,7 @@
         .then(function(r) { return r.json(); })
         .then(function(data) {
           var rate = data && data.krw && data.krw.mxn;
-          if (rate) { setRate(rate); saveRateToCache(rate); } else { tryCloudflare(); }
+          if (rate) { setRate(rate * 1.04); saveRateToCache(rate * 1.04); } else { tryCloudflare(); }
         })
         .catch(tryCloudflare);
     }
@@ -919,7 +917,7 @@
       var commKRW = productKRW + 3000 + 1500;        // +₩3,000 proxy + ₩1,500 fee
 
       // ─── CASH PATH: con 10% gestión + IVA 16% ───
-      var cashSubtotalKRW = commKRW * 1.10;
+      var cashSubtotalKRW = commKRW * 1.05;
       var cashSubtotalMXN = cashSubtotalKRW * exchangeRate;
       var cashMargin = getMargin(cashSubtotalMXN);
       var cashBaseMXN = cashSubtotalMXN / (1 - cashMargin.pct);
