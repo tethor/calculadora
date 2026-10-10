@@ -40,8 +40,18 @@
   input:focus { outline: none; border-color: #6cf; box-shadow: 0 0 0 3px #6cf2; }
   #krw { font-size: 26px; font-weight: 700; letter-spacing: -.01em; }
   .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .ratebox { position: relative; }
+  .ratebox input { padding-right: 38px; }
+  #refresh {
+    position: absolute; right: 6px; bottom: 5px; width: 30px; height: 30px; cursor: pointer;
+    background: none; border: 0; color: var(--dim); font-size: 16px; border-radius: 8px;
+  }
+  #refresh:hover { color: var(--fg); background: #ffffff10; }
+  #fx { border-color: #6cf4; }
   #cal { border-color: #6cf6; }
-  table { border-collapse: collapse; width: 100%; margin-top: 22px; }
+  .src { color: var(--dim); font-size: 11.5px; margin: -6px 0 16px; }
+  .src b { color: #9cf; font-weight: 600; }
+  table { border-collapse: collapse; width: 100%; margin-top: 12px; }
   th { text-align: left; font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
        color: var(--dim); font-weight: 600; padding: 0 0 8px; }
   th:last-child, td:last-child { text-align: right; }
@@ -52,6 +62,7 @@
   .pct { display: inline-flex; align-items: center; gap: 3px; color: var(--dim); font-size: 12px; }
   .pct input { width: 56px; padding: 4px 6px; font-size: 12px; border-radius: 6px; }
   .note { color: var(--dim); font-size: 11.5px; margin-top: 18px; line-height: 1.5; }
+  code { color: #9cf; }
 </style>
 </head>
 <body>
@@ -63,15 +74,24 @@
     <span>Amount to Pay ₩</span>
     <input id="krw" type="text" inputmode="numeric" value="54000">
   </div>
+
   <div class="two">
-    <div class="field">
+    <div class="field ratebox">
       <span>Tasa ₩/USD</span>
-      <input id="rate" type="text" inputmode="decimal" value="1301.9">
+      <input id="rate" type="text" inputmode="decimal" value="1302">
+      <button id="refresh" title="Volver a consultar la tasa">↻</button>
     </div>
     <div class="field">
-      <span>Wise $ ↔ (calibrar)</span>
-      <input id="cal" type="text" inputmode="decimal" placeholder="opcional">
+      <span>Margen FX % (respaldo)</span>
+      <input id="fx" type="text" inputmode="decimal" value="3.03">
     </div>
+  </div>
+
+  <div class="src" id="src">cargando tasa…</div>
+
+  <div class="field">
+    <span>Wise $ ↔ (calibrar con la cotización real)</span>
+    <input id="cal" type="text" inputmode="decimal" placeholder="opcional">
   </div>
 
   <table>
@@ -80,8 +100,9 @@
   </table>
 
   <div class="note">
-    El “₩1,302” de KFriday va redondeado; el real ronda ₩1,301.9.<br>
-    Pega el precio Wise que te dieron para calibrar la tasa exacta del día.
+    La tasa sale de KFriday: un cron lee el header de kfriday.net/my-page cada 30 min y la deja
+    en <code>rate.json</code>. Si ese archivo falta, respaldo con la tasa de mercado ÷ margen FX.
+    Si un día la cotización no cuadra, pega el precio Wise y la tasa queda clavada a mano.
   </div>
 </div>
 
@@ -93,21 +114,38 @@ const METHODS = [
   ['Credit Card', 5.10],
   ['PayPal', 14.41],
 ];
-const $ = id => document.getElementById(id);
-const num = s => parseFloat(String(s).replace(/[^\d.]/g, '')) || 0;
+const RATE_JSON = 'rate.json';  // lo escribe .github/workflows/kfriday-rate.yml (tasa real)
+const RATE_URLS = [             // respaldo: tasa de mercado (misma fuente que la tienda)
+  'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/krw.json',
+  'https://latest.currency-api.pages.dev/v1/currencies/krw.json',
+];
 const SAVE = 'kfriday-calc';
 
-let pcts = loadPcts();
+const $ = id => document.getElementById(id);
+const num = s => parseFloat(String(s).replace(/[^\d.]/g, '')) || 0;
+const fmt = n => n.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-function loadPcts() {
-  const base = METHODS.map(m => m[1]);
-  try {
-    const s = JSON.parse(localStorage.getItem(SAVE) || 'null');
-    if (s?.rate) $('rate').value = s.rate;
-    if (s?.pcts) return base.map((v, i) => s.pcts[i] ?? v);
-  } catch (e) {}
-  return base;
-}
+let pcts = METHODS.map(m => m[1]);
+let fx = 3.03;
+let kf = null;       // tasa de KFriday (rate.json)
+let market = null;   // tasa de mercado (respaldo)
+let manual = false;  // tasa fijada a mano en esta sesión
+
+try {
+  const s = JSON.parse(localStorage.getItem(SAVE) || 'null');
+  if (s) {
+    if (s.pcts) pcts = pcts.map((v, i) => s.pcts[i] ?? v);
+    if (s.fx != null) fx = s.fx;
+    if (s.kf) kf = s.kf;
+    if (s.market) market = s.market;
+  }
+} catch (e) {}
+$('fx').value = fx;
+
+const save = () => localStorage.setItem(SAVE, JSON.stringify({ pcts, fx, kf, market }));
+
+/** Respaldo: tasa efectiva = mercado ÷ (1 + margen FX). */
+const rateFromMarket = (m, marginPct) => m / (1 + marginPct / 100);
 
 function render() {
   const krw = num($('krw').value);
@@ -125,28 +163,79 @@ function render() {
             data-i="${i}" value="${r.pct}">%</span></td>
       <td class="usd">$${r.usd.toFixed(2)}</td>
     </tr>`).join('');
-  localStorage.setItem(SAVE, JSON.stringify({ rate: $('rate').value, pcts }));
+
+  const hand = manual ? ' · <b>tasa a mano</b>' : '';
+  $('src').innerHTML = kf
+    ? `KFriday <b>₩${fmt(kf.rate)}</b> · kfriday.net ${kf.at || ''}${hand}`
+    : market
+      ? `respaldo: mercado <b>₩${fmt(market)}</b> ÷ 1,${fx}% → <b>₩${fmt(rateFromMarket(market, fx))}</b>${hand}`
+      : 'sin tasa: escríbela o calíbrala a mano';
+  save();
+}
+
+async function loadRate() {
+  manual = false;
+  try {  // 1) la tasa real de KFriday
+    const res = await fetch(RATE_JSON, { cache: 'no-store' });
+    if (res.ok) {
+      const d = await res.json();
+      if (typeof d.rate === 'number' && d.rate > 0) {
+        kf = d;
+        $('rate').value = d.rate.toFixed(2);
+        render();
+        return;
+      }
+    }
+  } catch (e) { /* sin rate.json: cae al respaldo */ }
+
+  for (const url of RATE_URLS) {  // 2) tasa de mercado
+    try {
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) continue;
+      const data = await res.json();
+      const usd = data && data.krw && data.krw.usd;
+      if (typeof usd === 'number' && usd > 0) {
+        market = 1 / usd;  // cotización USD→KRW
+        $('rate').value = rateFromMarket(market, fx).toFixed(2);
+        render();
+        return;
+      }
+    } catch (e) { /* siguiente fuente */ }
+  }
+  render();  // 3) lo guardado o lo escrito a mano
 }
 
 document.addEventListener('input', e => {
   const i = e.target.dataset.i;
   if (i !== undefined) {
     pcts[i] = num(e.target.value);
+  } else if (e.target.id === 'fx') {
+    fx = num(e.target.value);
+    if (!kf && market && !manual) $('rate').value = rateFromMarket(market, fx).toFixed(2);
+  } else if (e.target.id === 'rate') {
+    manual = true;
   } else if (e.target.id === 'cal') {
     // calibrar: tasa real = wones / (USD Wise / (1 + markup Wise))
     const wise = num(e.target.value);
     const krw = num($('krw').value);
-    if (wise > 0 && krw > 0) $('rate').value = (krw / (wise / (1 + pcts[0] / 100))).toFixed(2);
+    if (wise > 0 && krw > 0) {
+      $('rate').value = (krw / (wise / (1 + pcts[0] / 100))).toFixed(2);
+      manual = true;
+    }
   }
   render();
 });
-render();
 
-// self-check contra las dos cotizaciones reales de KFriday
+$('refresh').addEventListener('click', () => { $('cal').value = ''; loadRate(); });
+
+render();
+loadRate();
+
+// self-check contra las dos cotizaciones reales de KFriday (tasa efectiva ₩1,301.9)
 [[58000, 44.55, 45.89, 46.82, 50.97], [54000, 41.48, 42.73, 43.59, 47.47]].forEach(([krw, ...want]) => {
-  [0, 3.01, 5.10, 14.41].forEach((p, i) => {
-    const got = +(krw / 1301.9 * (1 + p / 100)).toFixed(2);
-    if (Math.abs(got - want[i]) > 0.01) console.warn('difiere ¢ (redondeo de ellos):', krw, METHODS[i][0], got, want[i]);
+  [0, 1, 3, 4].forEach((i, k) => {           // Wise, Alipay/WeChat, tarjeta, PayPal
+    const got = +(krw / 1301.9 * (1 + METHODS[i][1] / 100)).toFixed(2);
+    if (Math.abs(got - want[k]) > 0.01) console.warn('difiere ¢ (redondeo de ellos):', krw, METHODS[i][0], got, want[k]);
   });
 });
 </script>

@@ -1,0 +1,63 @@
+name: kfriday-rate
+
+# La tasa USD/KRW que KFriday pone en el header de /my-page (server-rendered,
+# sin login). El navegador no la puede leer directo (su HTML no manda CORS),
+# así que este cron la deja en kfriday/rate.json y la calculadora la lee del
+# mismo origen. Solo commitea cuando la tasa cambia (o cada 7 días como latido
+# para que GitHub no desactive el schedule por inactividad).
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  rate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Leer tasa de kfriday.net
+        run: |
+          curl -sL --max-time 25 -A 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' \
+            https://www.kfriday.net/my-page -o /tmp/page.html
+          # \K para quedarse solo con los dígitos del ₩ (el markup trae otros
+          # números en medio: clases tipo text-[#18181B], que ya colaron una vez).
+          RATE=$(grep -oP 'USD/KRW.{0,200}?₩\K[\d,]+' /tmp/page.html | head -1 | tr -d ,)
+          if [ -z "$RATE" ]; then echo "sin tasa en el HTML: cambió el markup"; exit 1; fi
+          # cordura: KRW/USD vive entre 500 y 5,000
+          if [ "$RATE" -lt 500 ] || [ "$RATE" -gt 5000 ]; then echo "tasa fuera de rango: $RATE"; exit 1; fi
+          echo "tasa leida: $RATE"
+          python3 - "$RATE" <<'PY'
+          import json, os, sys, datetime
+          rate = float(sys.argv[1])
+          path = "kfriday/rate.json"
+          old = {}
+          if os.path.exists(path):
+              old = json.load(open(path))
+          fresh = old.get("rate") == rate
+          ping = old.get("at", "")[:10] >= (datetime.date.today() - datetime.timedelta(days=7)).isoformat()
+          if fresh and ping:
+              print("tasa sin cambios")
+              sys.exit(0)
+          json.dump({"rate": rate,
+                     "at": datetime.datetime.now(datetime.timezone.utc)
+                             .strftime("%Y-%m-%dT%H:%MZ"),
+                     "src": "kfriday.net/my-page"},
+                    open(path, "w"), ensure_ascii=False)
+          print("rate.json ->", rate)
+          PY
+
+      - name: Commit si cambió
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- kfriday/rate.json; then
+            echo "sin cambios que subir"
+          else
+            git add kfriday/rate.json
+            git commit -m "chore(tasa): kfriday USD/KRW $(date -u +%F)"
+            git push
+          fi
