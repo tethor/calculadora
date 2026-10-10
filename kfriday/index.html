@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Cotizador KFriday — POCAPAY</title>
+<link rel="icon" href="/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --card: #15151d;
+    --line: #262633;
+    --fg: #f2f2f7;
+    --dim: #8b8b9e;
+    --holo: linear-gradient(90deg, #6cf, #c9f, #fa8);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 20px 16px 40px; background: var(--bg); color: var(--fg);
+    font: 15px/1.45 'Space Grotesk', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 460px; margin: 0 auto; }
+  h1 {
+    font-size: 13px; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 4px;
+    background: var(--holo); -webkit-background-clip: text; background-clip: text; color: transparent;
+    width: fit-content;
+  }
+  .sub { color: var(--dim); font-size: 12px; margin-bottom: 22px; }
+  .field { margin-bottom: 14px; }
+  .field > span { display: block; color: var(--dim); font-size: 12px; margin-bottom: 5px; }
+  input {
+    width: 100%; background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    color: var(--fg); font: inherit; padding: 11px 13px;
+  }
+  input:focus { outline: none; border-color: #6cf; box-shadow: 0 0 0 3px #6cf2; }
+  #krw { font-size: 26px; font-weight: 700; letter-spacing: -.01em; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  #cal { border-color: #6cf6; }
+  table { border-collapse: collapse; width: 100%; margin-top: 22px; }
+  th { text-align: left; font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+       color: var(--dim); font-weight: 600; padding: 0 0 8px; }
+  th:last-child, td:last-child { text-align: right; }
+  td { padding: 11px 0; border-top: 1px solid var(--line); vertical-align: middle; }
+  td.usd { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 19px; }
+  tr.best td.usd { background: var(--holo); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  tr.best td:first-child::after { content: " ★"; color: #6cf; }
+  .pct { display: inline-flex; align-items: center; gap: 3px; color: var(--dim); font-size: 12px; }
+  .pct input { width: 56px; padding: 4px 6px; font-size: 12px; border-radius: 6px; }
+  .note { color: var(--dim); font-size: 11.5px; margin-top: 18px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Cotizador KFriday</h1>
+  <div class="sub">Wones → USD por método de pago. Se guarda solo.</div>
+
+  <div class="field">
+    <span>Amount to Pay ₩</span>
+    <input id="krw" type="text" inputmode="numeric" value="54000">
+  </div>
+  <div class="two">
+    <div class="field">
+      <span>Tasa ₩/USD</span>
+      <input id="rate" type="text" inputmode="decimal" value="1301.9">
+    </div>
+    <div class="field">
+      <span>Wise $ ↔ (calibrar)</span>
+      <input id="cal" type="text" inputmode="decimal" placeholder="opcional">
+    </div>
+  </div>
+
+  <table>
+    <thead><tr><th>Método</th><th>Comisión</th><th>Pagas USD</th></tr></thead>
+    <tbody id="body"></tbody>
+  </table>
+
+  <div class="note">
+    El “₩1,302” de KFriday va redondeado; el real ronda ₩1,301.9.<br>
+    Pega el precio Wise que te dieron para calibrar la tasa exacta del día.
+  </div>
+</div>
+
+<script>
+const METHODS = [
+  ['Wise', 0],
+  ['Alipay', 3.01],
+  ['WeChat', 3.01],
+  ['Credit Card', 5.10],
+  ['PayPal', 14.41],
+];
+const $ = id => document.getElementById(id);
+const num = s => parseFloat(String(s).replace(/[^\d.]/g, '')) || 0;
+const SAVE = 'kfriday-calc';
+
+let pcts = loadPcts();
+
+function loadPcts() {
+  const base = METHODS.map(m => m[1]);
+  try {
+    const s = JSON.parse(localStorage.getItem(SAVE) || 'null');
+    if (s?.rate) $('rate').value = s.rate;
+    if (s?.pcts) return base.map((v, i) => s.pcts[i] ?? v);
+  } catch (e) {}
+  return base;
+}
+
+function render() {
+  const krw = num($('krw').value);
+  const rate = num($('rate').value);
+  const rows = METHODS.map((m, i) => ({
+    name: m[0],
+    pct: pcts[i],
+    usd: rate ? krw / rate * (1 + pcts[i] / 100) : 0,
+  }));
+  const min = Math.min(...rows.map(r => r.usd));
+  $('body').innerHTML = rows.map((r, i) => `
+    <tr class="${r.usd === min ? 'best' : ''}">
+      <td>${r.name}</td>
+      <td><span class="pct"><input type="text" inputmode="decimal"
+            data-i="${i}" value="${r.pct}">%</span></td>
+      <td class="usd">$${r.usd.toFixed(2)}</td>
+    </tr>`).join('');
+  localStorage.setItem(SAVE, JSON.stringify({ rate: $('rate').value, pcts }));
+}
+
+document.addEventListener('input', e => {
+  const i = e.target.dataset.i;
+  if (i !== undefined) {
+    pcts[i] = num(e.target.value);
+  } else if (e.target.id === 'cal') {
+    // calibrar: tasa real = wones / (USD Wise / (1 + markup Wise))
+    const wise = num(e.target.value);
+    const krw = num($('krw').value);
+    if (wise > 0 && krw > 0) $('rate').value = (krw / (wise / (1 + pcts[0] / 100))).toFixed(2);
+  }
+  render();
+});
+render();
+
+// self-check contra las dos cotizaciones reales de KFriday
+[[58000, 44.55, 45.89, 46.82, 50.97], [54000, 41.48, 42.73, 43.59, 47.47]].forEach(([krw, ...want]) => {
+  [0, 3.01, 5.10, 14.41].forEach((p, i) => {
+    const got = +(krw / 1301.9 * (1 + p / 100)).toFixed(2);
+    if (Math.abs(got - want[i]) > 0.01) console.warn('difiere ¢ (redondeo de ellos):', krw, METHODS[i][0], got, want[i]);
+  });
+});
+</script>
+</body>
+</html>
