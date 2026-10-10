@@ -54,10 +54,12 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet -- kfriday/rate.json; then
+          # `git add` primero: `git diff` a secas ignora los archivos nuevos y
+          # la primera corrida (rate.json untracked) se iba sin commitear.
+          git add kfriday/rate.json
+          if git diff --cached --quiet; then
             echo "sin cambios que subir"
           else
-            git add kfriday/rate.json
             git commit -m "chore(tasa): kfriday USD/KRW $(date -u +%F)"
             git push
           fi
